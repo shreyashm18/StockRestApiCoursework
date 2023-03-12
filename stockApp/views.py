@@ -337,7 +337,7 @@ class CurrencyExchange():
         
     def getRateFromSelfBuildApi(self, from_currency, to_currency):
 
-        url_conv = "http://localhost:8089/CurConvRS/webresources/exchangeRate"
+        url_conv = "http://localhost:8082/CurConvRS/webresources/exchangeRate"
         url_endpoint = f"{url_conv}?fromCur={from_currency}&toCur={to_currency}"
         try:
             resp = requests.get(url_endpoint)
