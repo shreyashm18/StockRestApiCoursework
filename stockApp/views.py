@@ -322,18 +322,18 @@ class CurrencyExchange():
         headers = CaseInsensitiveDict()
         headers["apikey"] = self.api_key
 
-        return self.rate, True, 400
+        # return self.rate, True, 400
 
-        # resp = requests.get(url_conv, headers=headers)
-        # if resp.status_code != 200:
-        #     self.online_api_error = True
-        #     return self.rate, self.online_api_error, resp.status_code
-        # else:
-        #     resp = requests.get(url_conv, headers=headers)
-        #     json_data = resp.json()
-        #     self.rate = json_data['data'][to_currency]
-        #     print(f'GBP rate to INR = {self.rate}')
-        #     return self.rate, self.online_api_error, resp.status_code
+        resp = requests.get(url_conv, headers=headers)
+        if resp.status_code != 200:
+            self.online_api_error = True
+            return self.rate, self.online_api_error, resp.status_code
+        else:
+            resp = requests.get(url_conv, headers=headers)
+            json_data = resp.json()
+            self.rate = json_data['data'][to_currency]
+            print(f'GBP rate to INR = {self.rate}')
+            return self.rate, self.online_api_error, resp.status_code
         
     def getRateFromSelfBuildApi(self, from_currency, to_currency):
 
@@ -441,7 +441,7 @@ class BuySellInForex(APIView):
             current_user = request.user.id
             user_data = UserClient.objects.get(user_id=current_user)
             print("Query set == ",query_set)
-            total_share_price = query_set.share_price*share_qty*float(forex_rate)
+            total_share_price = query_set.share_price*share_qty*round(float(forex_rate),2)
             if transaction.lower() == 'buy':
                 if(share_qty>query_set.no_of_shares):
                     return Response(f"You can only buy {query_set.no_of_shares} or less shares", status=400)
@@ -457,7 +457,7 @@ class BuySellInForex(APIView):
                     except UserSharesData.DoesNotExist:
                         user_shares = UserSharesData(username=user_data,company_name=query_set.company_name, company_symbol=query_set.company_symbol,shares_qty=share_qty)
                         user_shares.save()
-                    forex_data.funds = forex_data.funds - total_share_price    
+                    forex_data.funds = round((forex_data.funds - total_share_price),2)    
                     forex_data.save()         
                     query_set.no_of_shares = query_set.no_of_shares-share_qty
                     query_set.last_updated_date = datetime.date.today()
@@ -478,7 +478,7 @@ class BuySellInForex(APIView):
                     if(user_shares.shares_qty >= share_qty):
                         user_shares.shares_qty -= share_qty
                         user_shares.save()
-                        forex_data.funds += total_share_price
+                        forex_data.funds = round((forex_data.funds + total_share_price),2)
                         forex_data.save()
                         query_set.no_of_shares = query_set.no_of_shares + share_qty
                         query_set.last_updated_date = datetime.date.today()
