@@ -11,6 +11,13 @@
     table {
         border-collapse: collapse;
         font-family: Tahoma, Geneva, sans-serif;
+        margin: 10px;
+        float: left;
+        
+    }
+    table th {
+        padding: 15px;
+        border: 1px solid #54585d;
     }
     table td {
         padding: 15px;
@@ -64,9 +71,9 @@
       <h3><center>Stock Market API</center></h3>
 
       
-      <div class="container" style="height:70vh;">
+      <div class="container" style="height:100vh;">
             <div id="all_stock" class="row">
-                <table class = 'w-50 table table-light' style="border-radius:10px;background-color:#ffffff;">
+                <table >
                     <tr>
                         <th>Want to list all stocks listed on our website?</th>
                         <td><button id="list_all_stock" class="apireq">List Stocks </button></td>
@@ -104,13 +111,10 @@
         </div>
         
         
-        <div class="row">
-            <!-- <div id="stock-json-data" style="height:75vh;"> -->
-                <div  class="row">
-                    <table id="stock-resp-data" class = 'w-50 table table-light' style="border-radius:10px;background-color:#ffffff;">
-                        
-                </div>
-            <!-- </div> -->
+        <div >
+            <table id="stock-resp-data">
+                
+            </table>
                 
         </div>
         
@@ -128,10 +132,10 @@
                      dataType: "json",
                      success : function (data) {
                         console.log(data)
-                        htm = '<tr><th>Company Name</th><th>Company Symbol</th><th>Share Quantity</th><th>Share Currency</th>'+
-                            '<th>Share Price</th><th>Last Updated date</th><th>More</th></tr>';
+                        htm = '<thead><tr><td>Company Name</td><td>Company Symbol</td><td>Share Quantity</td><td>Share Currency</td>'+
+                            '<td>Share Price</td><td>Last Updated date</td><td>More</td></td></tr></thead>'
                         for(rec in data){
-                            htm += '<tr id='+rec+'>'+
+                            htm += '<tbody><tr id='+rec+'>'+
                                 '<td id="company_name">'+data[rec]['company_name']+'</td>'+
                                 '<td id="company_symbol">'+data[rec]['company_symbol']+'</td>'+
                                 '<td id="no_of_shares">'+data[rec]['no_of_shares']+'</td>'+
@@ -142,7 +146,7 @@
                                 '{% csrf_token %}'+
                                 '<button id="more_btn" class="apireq" ;" >'+'More'+'</button>'+
                                 '</form></td>'+
-                                '</tr>'
+                                '</tr></tbody>'
 
                         }
                         $('#stock-resp-data').html(htm);
@@ -159,10 +163,10 @@
                     dataType: "json",
                     success : function (data) {
                     console.log(data)
-                        htm = '<tr><th>Company Name</th><th>Company Symbol</th><th>Share Quantity</th><th>Share Currency</th>'+
-                            '<th>Share Price</th><th>Last Updated date</th><th>More</th></tr>';
+                        htm = '<thead><tr><td>Company Name</td><td>Company Symbol</td><td>Share Quantity</td><td>Share Currency</td>'+
+                            '<td>Share Price</td><td>Last Updated date</td><td>More</td></td></tr></thead>'
                         for(rec in data){
-                            htm += '<tr id='+rec+'>'+
+                            htm += '<tbody><tr id='+rec+'>'+
                                 '<td id="company_name">'+data[rec]['company_name']+'</td>'+
                                 '<td id="company_symbol">'+data[rec]['company_symbol']+'</td>'+
                                 '<td id="no_of_shares">'+data[rec]['no_of_shares']+'</td>'+
@@ -173,7 +177,7 @@
                                     '{% csrf_token %}'+
                                     '<button id="more_btn" class="apireq" ;" >'+'More'+'</button>'+
                                     '</form></td>'+
-                                    '</tr>'
+                                    '</tr></tbody>'
 
                         }
                         $('#stock-resp-data').html(htm);
@@ -189,10 +193,10 @@
                     dataType: "json",
                     success : function (data) {
                     console.log(data)
-                    htm = '<tr><th>Company Name</th><th>Company Symbol</th><th>Share Quantity</th><th>Share Currency</th>'+
-                        '<th>Share Price</th><th>Last Updated date</th><th>More</th></tr>';
+                    htm = '<thead><tr><td>Company Name</td><td>Company Symbol</td><td>Share Quantity</td><td>Share Currency</td>'+
+                        '<td>Share Price</td><td>Last Updated date</td><td>More</td></td></tr></thead>'
                         for(rec in data){
-                            htm += '<tr id='+rec+'>'+
+                            htm += '<tbody><tr id='+rec+'>'+
                                 '<td id="company_name">'+data[rec]['company_name']+'</td>'+
                                 '<td id="company_symbol">'+data[rec]['company_symbol']+'</td>'+
                                 '<td id="no_of_shares">'+data[rec]['no_of_shares']+'</td>'+
@@ -203,7 +207,7 @@
                                     '{% csrf_token %}'+
                                     '<button id="more_btn" class="apireq" ;" >'+'More'+'</button>'+
                                     '</form></td>'+
-                                    '</tr>'
+                                    '</tr></tbody>'
 
                         }
                         $('#stock-resp-data').html(htm);
@@ -230,11 +234,11 @@
                         dataType: "json",
                         success : function (data) {
                         console.log(data)
-                        htm = '<tr><th>Company Name</th><th>Company Symbol</th><th>Share Quantity</th><th>Share Currency</th>'+
-                            '<th>Share Price</th><th>Last Updated date</th><th>More</th></tr>';
+                        htm = '<thead><tr><td>Company Name</td><td>Company Symbol</td><td>Share Quantity</td><td>Share Currency</td>'+
+                            '<td>Share Price</td><td>Last Updated date</td><td>More</td></td></tr></thead>'
                         for(rec in data){
                             
-                            htm += '<tr id='+rec+'>'+
+                            htm += '<tbody><tr id='+rec+'>'+
                                 '<td id="company_name">'+data[rec]['company_name']+'</td>'+
                                 '<td id="company_symbol">'+data[rec]['company_symbol']+'</td>'+
                                 '<td id="no_of_shares">'+data[rec]['no_of_shares']+'</td>'+
@@ -245,7 +249,7 @@
                                 '{% csrf_token %}';
                                 '<button id="more_btn" class="apireq" ;" >'+'More'+'</button>';
                                 '</form></td>';
-                                '</tr>'
+                                '</tr></tbody>'
 
                         }
                         $('#stock-resp-data').html(htm);

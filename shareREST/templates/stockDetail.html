@@ -6,7 +6,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <title>Home</title>
+    <title>Stock Detail</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            font-family: Tahoma, Geneva, sans-serif;
+            margin: 20px;
+        }
+        table td {
+            border: 1px solid #54585d;
+            padding: 15px;
+        }
+        table th {
+            padding: 15px;
+            border: 1px solid #54585d;
+        }
+        table thead td {
+            background-color: #54585d;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 13px;
+            border: 1px solid #54585d;
+        }
+        table tbody td {
+            color: #636363;
+            border: 1px solid #dddfe1;
+        }
+        table tbody tr {
+            background-color: #f9fafb;
+        }
+        table tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+        .center {
+            margin-left: auto;
+            margin-right: auto;
+          }
+            
+        </style>
 </head>
 <body>
   
@@ -33,8 +70,31 @@
       </nav>
 
       <h3><center>Stock Market API</center></h3>
+
+      <div class="center">
+        <table class="center" id="stock-resp-data">
+            <thead>
+                <tr>
+                    <td>Company Name</td>
+                    <td>Company Symbol</td>
+                    <td>Stock Quantity</td>
+                    <td>Share currency</td>
+                    <td>Share Price</td>
+                    <td>Last Updated Date</td>
+                </tr>
+            </thead>
+            <tbody>
+                <td>{{data.company_name}}</td>
+                <td id="company_symbol">{{data.company_symbol}}</td>
+                <td>{{data.no_of_shares}}</td>
+                <td>{{data.share_currency}}</td>
+                <td>{{data.share_price}}</td>
+                <td>{{data.last_updated_date}}</td>
+            </tbody>
+        </table>
+      </div>
       
-      <div class="container" style="height:70vh;">
+      <!-- <div class="container" style="height:70vh;">
         <div class="row">
             <table id="stock-resp-data" class = 'w-50 table table-light' style="border-radius:10px;background-color:#ffffff;">
             <tr>
@@ -63,37 +123,55 @@
             </tr>
             </table>
         </div>
-    </div>
+    </div> -->
 
-    <div class="row" id="api-btns"></div>
-    <table class = 'w-50 table table-light' style="border-radius:10px;background-color:#ffffff;">
+    <div >
+    <table class="center">
         <tr>
-            <th>Enter currency symbol to see price in another currency<input type="text" id="currency_symbol" name="currency_symbol"></th>
+            <th>Enter currency symbol to see price in another currency</th>
+            <td><input type="text" id="currency_symbol" name="currency_symbol"></td>
             <td><button id="currency-ex-btn" class="apireq" >Check </button></td>
             
         </tr>
         <tr>
-            <th>Buy Shares <input type="number" id="buy_quantity" name="quantity" min="1" ></th>
+            <th>Buy Shares</td>
+            <td><input type="number" id="buy_quantity" name="quantity" min="1" ></th>
             <td><button id="buy-share-btn" class="apireq" >Buy </button></td>
         </tr>
         {% if share_qty > 0 %}
         <tr>
-            <th>Sell Shares <input type="number" id="sell_quantity" name="quantity" min="1" ></th>
+            <th>Sell Shares </td>
+            <td><input type="number" id="sell_quantity" name="quantity" min="1" ></th>
             <td><button id="sell-share-btn" class="apireq" >Sell </button></td>
         </tr>
         {% endif %}
         <tr>
-            <th>Buy in Foreign Currency <input type="number" id="buy_quantity_forex" name="quantity" min="1" ></th>
+            <th>Buy in Foreign Currency </td>
+            <td><input type="number" id="buy_quantity_forex" name="quantity" min="1" ></th>
             <td><button id="buy-share-forex" class="apireq" >Buy </button></td>
         </tr>
         {% if share_qty > 0 %}
         <tr>
-            <th>Sell in Foreign Currency <input type="number" id="sell_quantity_forex" name="quantity" min="1" ></th>
+            <th>Sell in Foreign Currency </td>
+            <td><input type="number" id="sell_quantity_forex" name="quantity" min="1" ></th>
             <td><button id="sell-share-forex" class="apireq" >Sell </button></td>
+        </tr>
+        {% endif %}
+        {% if request.user.is_staff %}
+        <tr>
+            <th>Change Share Price </td>
+            <td><input type="number" id="change_share_price" name="price" min="1" ></th>
+            <td><button id="change-share-price" class="apireq" >Change Price </button></td>
+        </tr>
+        <tr>
+            <th>Change Share Quantity </td>
+            <td><input type="number" id="change_share_quantity"  min="1" ></th>
+            <td><button id="change-share-quantity" class="apireq" >Change Quantity </button></td>
         </tr>
         {% endif %}
         
     </table>
+    </div>
       
     </body>
     
@@ -122,15 +200,25 @@
                 console.log(data)
                 
                 htm = ''
-                htm +='<tr><th>Company Name</th><td>'+data['company_name']+'</td></tr>'
-                htm +='<tr><th>Company Symbol</th><td id="company_symbol">'+data['company_symbol']+'</td></tr>'
-                htm +='<tr><th>Available Quantity</th><td>'+data['no_of_shares']+'</td></tr>'
-                htm +='<tr><th>Stock available in Currency</th><td>'+data['share_currency']+'</td></tr>'
-                htm +='<tr><th>Stock Price</th><td>'+data['share_price']+'</td></tr>'
-                htm +='<tr><th>Foreign Currency</th><td id="exc_cur">'+data['exchange_currency']+'</td></tr>'
-                htm +='<tr><th>Rate in '+currency_symbol+'</th><td id="exc_cur_rt">'+data['currency_rate']+'</td></tr>'
-                htm +='<tr><th>Price in '+currency_symbol+'</th><td id="exc_cur_stk_price">'+data['currency_stock_price']+'</td></tr>'
-                htm +='<tr><th>Laste Update Date</th><td>'+data['last_updated_date']+'</td></tr>'
+                htm += '<thead><tr><td>Company Name</td><td>Company Symbol</td><td>Available Quantity</td><td>Stock Base Currency</td>'+
+                    '<td>Stock Price</td>'
+                if('exchange_currency' in data){
+                    console.log(data['exchange_currency'])
+                    htm += '<td>Foreign Currency</td><td>Rate of '+currency_symbol+'</td><td>Price in '+currency_symbol+'</td>'
+                }
+                htm += '<td>Last Update Date</td></tr></thead>'
+                htm += ''
+                htm +='<tbody><tr><td>'+data['company_name']+'</td>'
+                htm +='<td id="company_symbol">'+data['company_symbol']+'</td>'
+                htm +='<td>'+data['no_of_shares']+'</td>'
+                htm +='<td>'+data['share_currency']+'</td>'
+                htm +='<td>'+data['share_price']+'</td>'
+                if('exchange_currency' in data){
+                    htm +='<td id="exc_cur">'+data['exchange_currency']+'</td>'
+                    htm +='<td id="exc_cur_rt">'+data['currency_rate']+'</td>'
+                    htm +='<td id="exc_cur_stk_price">'+data['currency_stock_price']+'</td>'
+                }
+                htm +='<td>'+data['last_updated_date']+'</td></tr></tbody>'
                 $('#stock-resp-data').html(htm);
                     }
                     });
@@ -155,6 +243,27 @@
                 success : function (data) {
                 console.log(data)
                 alert(data['response_msg'])
+                htm = ''
+                htm += '<thead><tr><td>Company Name</td><td>Company Symbol</td><td>Available Quantity</td><td>Stock Base Currency</td>'+
+                    '<td>Stock Price</td>'
+                if('exchange_currency' in data){
+                    console.log(data['exchange_currency'])
+                    htm += '<td>Foreign Currency</td><td>Rate of '+currency_symbol+'</td><td>Price in '+currency_symbol+'</td>'
+                }
+                htm += '<td>Last Update Date</td></tr></thead>'
+                htm += ''
+                htm +='<tbody><tr><td>'+data['company_name']+'</td>'
+                htm +='<td id="company_symbol">'+data['company_symbol']+'</td>'
+                htm +='<td>'+data['no_of_shares']+'</td>'
+                htm +='<td>'+data['share_currency']+'</td>'
+                htm +='<td>'+data['share_price']+'</td>'
+                if('exchange_currency' in data){
+                    htm +='<td id="exc_cur">'+data['exchange_currency']+'</td>'
+                    htm +='<td id="exc_cur_rt">'+data['currency_rate']+'</td>'
+                    htm +='<td id="exc_cur_stk_price">'+data['currency_stock_price']+'</td>'
+                }
+                htm +='<td>'+data['last_updated_date']+'</td></tr></tbody>'
+                $('#stock-resp-data').html(htm);
                     }
                     });
                 });
@@ -178,6 +287,27 @@
                     success : function (data) {
                     console.log(data)
                     alert(data['response_msg'])
+                    htm = ''
+                htm += '<thead><tr><td>Company Name</td><td>Company Symbol</td><td>Available Quantity</td><td>Stock Base Currency</td>'+
+                    '<td>Stock Price</td>'
+                if('exchange_currency' in data){
+                    console.log(data['exchange_currency'])
+                    htm += '<td>Foreign Currency</td><td>Rate of '+currency_symbol+'</td><td>Price in '+currency_symbol+'</td>'
+                }
+                htm += '<td>Last Update Date</td></tr></thead>'
+                htm += ''
+                htm +='<tbody><tr><td>'+data['company_name']+'</td>'
+                htm +='<td id="company_symbol">'+data['company_symbol']+'</td>'
+                htm +='<td>'+data['no_of_shares']+'</td>'
+                htm +='<td>'+data['share_currency']+'</td>'
+                htm +='<td>'+data['share_price']+'</td>'
+                if('exchange_currency' in data){
+                    htm +='<td id="exc_cur">'+data['exchange_currency']+'</td>'
+                    htm +='<td id="exc_cur_rt">'+data['currency_rate']+'</td>'
+                    htm +='<td id="exc_cur_stk_price">'+data['currency_stock_price']+'</td>'
+                }
+                htm +='<td>'+data['last_updated_date']+'</td></tr></tbody>'
+                $('#stock-resp-data').html(htm);
                         }
                         });
                     });
@@ -212,6 +342,27 @@
                         success : function (data) {
                         console.log(data)
                         alert(data['response_msg'])
+                        htm = ''
+                        htm += '<thead><tr><td>Company Name</td><td>Company Symbol</td><td>Available Quantity</td><td>Stock Base Currency</td>'+
+                            '<td>Stock Price</td>'
+                        if('exchange_currency' in data){
+                            console.log(data['exchange_currency'])
+                            htm += '<td>Foreign Currency</td><td>Rate of '+currency_symbol+'</td><td>Price in '+currency_symbol+'</td>'
+                        }
+                        htm += '<td>Last Update Date</td></tr></thead>'
+                        htm += ''
+                        htm +='<tbody><tr><td>'+data['company_name']+'</td>'
+                        htm +='<td id="company_symbol">'+data['company_symbol']+'</td>'
+                        htm +='<td>'+data['no_of_shares']+'</td>'
+                        htm +='<td>'+data['share_currency']+'</td>'
+                        htm +='<td>'+data['share_price']+'</td>'
+                        if('exchange_currency' in data){
+                            htm +='<td id="exc_cur">'+data['exchange_currency']+'</td>'
+                            htm +='<td id="exc_cur_rt">'+data['currency_rate']+'</td>'
+                            htm +='<td id="exc_cur_stk_price">'+data['currency_stock_price']+'</td>'
+                        }
+                        htm +='<td>'+data['last_updated_date']+'</td></tr></tbody>'
+                        $('#stock-resp-data').html(htm);
                             }
                             });
                         });
@@ -243,6 +394,111 @@
                         success : function (data) {
                         console.log(data)
                         alert(data['response_msg'])
+                        htm = ''
+                        htm += '<thead><tr><td>Company Name</td><td>Company Symbol</td><td>Available Quantity</td><td>Stock Base Currency</td>'+
+                            '<td>Stock Price</td>'
+                        if('exchange_currency' in data){
+                            console.log(data['exchange_currency'])
+                            htm += '<td>Foreign Currency</td><td>Rate of '+currency_symbol+'</td><td>Price in '+currency_symbol+'</td>'
+                        }
+                        htm += '<td>Last Update Date</td></tr></thead>'
+                        htm += ''
+                        htm +='<tbody><tr><td>'+data['company_name']+'</td>'
+                        htm +='<td id="company_symbol">'+data['company_symbol']+'</td>'
+                        htm +='<td>'+data['no_of_shares']+'</td>'
+                        htm +='<td>'+data['share_currency']+'</td>'
+                        htm +='<td>'+data['share_price']+'</td>'
+                        if('exchange_currency' in data){
+                            htm +='<td id="exc_cur">'+data['exchange_currency']+'</td>'
+                            htm +='<td id="exc_cur_rt">'+data['currency_rate']+'</td>'
+                            htm +='<td id="exc_cur_stk_price">'+data['currency_stock_price']+'</td>'
+                        }
+                        htm +='<td>'+data['last_updated_date']+'</td></tr></tbody>'
+                        $('#stock-resp-data').html(htm);
+                            }
+                            });
+                        });
+
+        $('#change-share-price').click( function() {
+            company_symbol = document.getElementById('company_symbol').innerText;
+            changeRate = $('#change_share_price').val(),
+            console.log(company_symbol)
+            url_endpoint = "?"
+            if(!(company_symbol === "") && (company_symbol !== null && company_symbol !== undefined )){
+                url_endpoint += "company_symbol="+company_symbol
+            }
+            if(!(changeRate === "") && (changeRate !== null && changeRate !== undefined )){
+                url_endpoint += "&changeRate="+changeRate
+            }
+            $.ajax({
+                        url : "http://127.0.0.1:8000/shares/api/priceChange"+url_endpoint,
+                        dataType: "json",
+                        success : function (data) {
+                        console.log(data)
+                        alert(data['response_msg'])
+                        htm = ''
+                        htm += '<thead><tr><td>Company Name</td><td>Company Symbol</td><td>Available Quantity</td><td>Stock Base Currency</td>'+
+                            '<td>Stock Price</td>'
+                        if('exchange_currency' in data){
+                            console.log(data['exchange_currency'])
+                            htm += '<td>Foreign Currency</td><td>Rate of '+currency_symbol+'</td><td>Price in '+currency_symbol+'</td>'
+                        }
+                        htm += '<td>Last Update Date</td></tr></thead>'
+                        htm += ''
+                        htm +='<tbody><tr><td>'+data['company_name']+'</td>'
+                        htm +='<td id="company_symbol">'+data['company_symbol']+'</td>'
+                        htm +='<td>'+data['no_of_shares']+'</td>'
+                        htm +='<td>'+data['share_currency']+'</td>'
+                        htm +='<td>'+data['share_price']+'</td>'
+                        if('exchange_currency' in data){
+                            htm +='<td id="exc_cur">'+data['exchange_currency']+'</td>'
+                            htm +='<td id="exc_cur_rt">'+data['currency_rate']+'</td>'
+                            htm +='<td id="exc_cur_stk_price">'+data['currency_stock_price']+'</td>'
+                        }
+                        htm +='<td>'+data['last_updated_date']+'</td></tr></tbody>'
+                        $('#stock-resp-data').html(htm);
+                            }
+                            });
+                        });
+
+        $('#change-share-quantity').click( function() {
+            company_symbol = document.getElementById('company_symbol').innerText;
+            quantity = $('#change_share_quantity').val(),
+            console.log(company_symbol)
+            url_endpoint = "?"
+            if(!(company_symbol === "") && (company_symbol !== null && company_symbol !== undefined )){
+                url_endpoint += "company_symbol="+company_symbol
+            }
+            if(!(quantity === "") && (quantity !== null && quantity !== undefined )){
+                url_endpoint += "&quantity="+quantity
+            }
+            $.ajax({
+                        url : "http://127.0.0.1:8000/shares/api/quantityUpdate"+url_endpoint,
+                        dataType: "json",
+                        success : function (data) {
+                        console.log(data)
+                        alert(data['response_msg'])
+                        htm = ''
+                        htm += '<thead><tr><td>Company Name</td><td>Company Symbol</td><td>Available Quantity</td><td>Stock Base Currency</td>'+
+                            '<td>Stock Price</td>'
+                        if('exchange_currency' in data){
+                            console.log(data['exchange_currency'])
+                            htm += '<td>Foreign Currency</td><td>Rate of '+currency_symbol+'</td><td>Price in '+currency_symbol+'</td>'
+                        }
+                        htm += '<td>Last Update Date</td></tr></thead>'
+                        htm += ''
+                        htm +='<tbody><tr><td>'+data['company_name']+'</td>'
+                        htm +='<td id="company_symbol">'+data['company_symbol']+'</td>'
+                        htm +='<td>'+data['no_of_shares']+'</td>'
+                        htm +='<td>'+data['share_currency']+'</td>'
+                        htm +='<td>'+data['share_price']+'</td>'
+                        if('exchange_currency' in data){
+                            htm +='<td id="exc_cur">'+data['exchange_currency']+'</td>'
+                            htm +='<td id="exc_cur_rt">'+data['currency_rate']+'</td>'
+                            htm +='<td id="exc_cur_stk_price">'+data['currency_stock_price']+'</td>'
+                        }
+                        htm +='<td>'+data['last_updated_date']+'</td></tr></tbody>'
+                        $('#stock-resp-data').html(htm);
                             }
                             });
                         });

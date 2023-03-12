@@ -99,14 +99,14 @@ class ShareList(APIView):
         else:
             return HttpResponseRedirect(reverse('login-user'))
 
-    def post(self,request):
-        data=request.data
-        print(data)
-        shares=SharesListSerializer(data=data)
-        if shares.is_valid():
-            shares.save()
-            return Response(shares.data,status=201)
-        return Response(shares.errors,status=400)
+    # def post(self,request):
+    #     data=request.data
+    #     print(data)
+    #     shares=SharesListSerializer(data=data)
+    #     if shares.is_valid():
+    #         shares.save()
+    #         return Response(shares.data,status=201)
+    #     return Response(shares.errors,status=400)
 
 class ShareChangePrice(APIView):
     def get_object(self, filter_by, filter_value):
@@ -150,13 +150,17 @@ class ShareChangePrice(APIView):
                     if new_price:
                         instance.share_price = new_price
                         instance.save()
-                        return Response("Price updated successfully")
+                        serializer = SharesListSerializer(instance)
+                        data = serializer.data
+                        data["response_msg"] = "Price updated successfully"
+                        return Response(data, status=200)
                     else:
                         raise_error = True
                 if raise_error:
                     raise BadRequest('Invalid request.')
             else:
-                return Response("User is not authorisez to change price", status=401)
+                data = {"response_msg":"User is not authorisez to change price"}
+                return Response(data, status=401)
         else:
             return HttpResponseRedirect(reverse('login-user'))
 
@@ -203,13 +207,17 @@ class ShareUpdatQty(APIView):
                     if quantity:
                         instance.no_of_shares = quantity
                         instance.save()
-                        return Response("Shares quantity updated successfully")
+                        serializer = SharesListSerializer(instance)
+                        data = serializer.data
+                        data["response_msg"]=f"Shares quantity updated successfully"
+                        return Response(data,status=200)
                     else:
                         raise_error = True
                 if raise_error:
                     raise BadRequest('Invalid request.')
             else:
-                return Response("User is not authorisez to change share quantity", status=401)
+                data = {"response_msg":"User is not authorisez to change share quantity"}
+                return Response(data, status=401)
         else:
             return HttpResponseRedirect(reverse('login-user'))
 
@@ -265,9 +273,9 @@ class BuySellShares(APIView):
                             query_set.no_of_shares = query_set.no_of_shares-share_qty
                             query_set.last_updated_date = datetime.date.today()
                             query_set.save()
-                            msg = "Shares bought and db updated"
-                            data = {"response_msg":msg}
-                            json_resp = json.dumps({"response_msg":msg})
+                            serializer = SharesListSerializer(query_set)
+                            data = serializer.data
+                            data["response_msg"]="Shares bought and db updated"
                             return Response(data, status=200)
                         else:
                             data = {"response_msg":"You dont have enough funds in account"}
@@ -287,7 +295,9 @@ class BuySellShares(APIView):
                                     query_set.no_of_shares = query_set.no_of_shares + share_qty
                                     query_set.last_updated_date = datetime.date.today()
                                     query_set.save()
-                                    data = {"response_msg":"Shares sold and db updated"}
+                                    serializer = SharesListSerializer(query_set)
+                                    data = serializer.data
+                                    data["response_msg"]="Shares sold and db updated"
                                     return Response(data, status=200)
                                 else:
                                     data = {"response_msg":f"You dont have {share_qty} shares in account to sell"}
@@ -326,7 +336,7 @@ class CurrencyExchange():
         #     return self.rate, self.online_api_error, resp.status_code
         
     def getRateFromSelfBuildApi(self, from_currency, to_currency):
-        print("Inside self api func ++++++++++++++++++++++++++++++++++++++++++++++++++++")
+
         url_conv = "http://localhost:8089/CurConvRS/webresources/exchangeRate"
         url_endpoint = f"{url_conv}?fromCur={from_currency}&toCur={to_currency}"
         try:
@@ -377,9 +387,10 @@ class findForeignRate(APIView):
                     self.ex_rate, error_flag2, error_msg = self.currency_ex_obj.getRateFromSelfBuildApi("GBP", to_currency)
                     if error_flag2:
                         return Response(f"Internal Error occured : {error_msg}", status=404)
+                self.ex_rate = round(self.ex_rate,2)
                 query_set = self.get_object()
                 print("Query set == ",query_set)
-                stock_rt_foreign_curr = query_set.share_price * self.ex_rate
+                stock_rt_foreign_curr = round(query_set.share_price * self.ex_rate, 2)
                 print(f"{query_set.company_name} price in {to_currency} = {stock_rt_foreign_curr}")
                 serializer = SharesListSerializer(query_set)
                 print(serializer.data)
@@ -387,6 +398,7 @@ class findForeignRate(APIView):
                 data["exchange_currency"] = to_currency.upper()
                 data["currency_rate"] = self.ex_rate
                 data['currency_stock_price'] = stock_rt_foreign_curr
+                data["response_msg"]="Shares bought and db updated"
                 return Response(data, status=200)
 
         else:
@@ -411,7 +423,9 @@ class BuySellInForex(APIView):
             user_forex_data = UserCurrency.objects.get(username_id=id,currency_symbol=forex_currency)
             return user_forex_data
         except UserCurrency.DoesNotExist:
-            return Response(f"You do not have funds in {forex_currency}, please add it first", status=406)
+            print("++++++++++++++++++++++++++++++++++++++++++++++++Inside except+++++++++++++++++++++++++++++++")
+            return False
+            
         
     
     def get(self, request):
@@ -432,6 +446,9 @@ class BuySellInForex(APIView):
                 if(share_qty>query_set.no_of_shares):
                     return Response(f"You can only buy {query_set.no_of_shares} or less shares", status=400)
                 forex_data = self.get_userForex_data(user_data.id,forex_currency)
+                if not forex_data:
+                    data = {"response_msg":f"You do not have funds in {forex_currency}, please add it first"}
+                    return Response(data, status=406)
                 if(forex_data.funds >= total_share_price):
                     try:
                         user_shares = UserSharesData.objects.get(username_id=user_data.id, company_symbol = query_set.company_symbol)
@@ -445,9 +462,13 @@ class BuySellInForex(APIView):
                     query_set.no_of_shares = query_set.no_of_shares-share_qty
                     query_set.last_updated_date = datetime.date.today()
                     query_set.save()
-                    return Response("Shares bought and db updated", status=200)
+                    serializer = SharesListSerializer(query_set)
+                    data = serializer.data
+                    data["response_msg"] = "Shares bought and db updated"
+                    return Response(data, status=200)
                 else:
-                    return Response("You dont have enough funds in account", status=403)
+                    data = {"response_msg":"You dont have enough funds in account"}
+                    return Response(data, status=403)
             
             elif transaction.lower() == 'sell':
 
@@ -462,11 +483,16 @@ class BuySellInForex(APIView):
                         query_set.no_of_shares = query_set.no_of_shares + share_qty
                         query_set.last_updated_date = datetime.date.today()
                         query_set.save()
-                        return Response("Shares sold and db updated", status=200)
+                        serializer = SharesListSerializer(query_set)
+                        data = serializer.data
+                        data["response_msg"] = "Shares sold and db updated"
+                        return Response( data, status=200)
                     else:
-                        return Response(f"You dont have {share_qty} shares in account to sell", status=403)
+                        data = {"response_msg":f"You dont have {share_qty} shares in account to sell"}
+                        return Response(data, status=403)
 
                 except UserSharesData.DoesNotExist:
-                    return Response(f"You dont have share of {query_set.company_name} to sell",status=404)
+                    data = {"response_msg":f"You dont have share of {query_set.company_name} to sell"}
+                    return Response(data,status=404)
         else:
             return HttpResponseRedirect(reverse('login-user'))
