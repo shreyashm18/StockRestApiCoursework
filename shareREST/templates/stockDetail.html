@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <title>Home</title>
+</head>
+<body>
+  
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+          <div class="navbar-nav">
+            <a class="nav-item nav-link active" href="{% url 'home-page' %}">Home <span class="sr-only">(current)</span></a>
+            
+            
+            {% if user.is_authenticated %}
+                  <!-- <li>Hello {{user.first_name}}</a></li> -->
+                  <a class="nav-item nav-link" >Hello {{user.first_name}}</a>
+                  <a class="nav-item nav-link" href="{% url 'logout-user' %}">Logout</a>
+            
+                  
+            {% endif %}
+            
+          </div>
+        </div>
+      </nav>
+
+      <h3><center>Stock Market API</center></h3>
+      
+      <div class="container" style="height:70vh;">
+        <div class="row">
+            <table id="stock-resp-data" class = 'w-50 table table-light' style="border-radius:10px;background-color:#ffffff;">
+            <tr>
+                <th>Company Name</th>
+                <td>{{ data.company_name }}</td>
+            </tr>
+            <tr>
+                <th>Company Symbol</th>
+                <td id="company_symbol">{{ data.company_symbol }}</td>
+            </tr>
+            <tr>
+                <th>Stock Quantity</th>
+                <td>{{ data.no_of_shares }}</td>
+            </tr>
+            <tr>
+                <th>Share currency</th>
+                <td>{{ data.share_currency }}</td>
+            </tr>
+            <tr>
+                <th>Share Price</th>
+                <td>{{ data.share_price }}</td>
+            </tr>
+            <tr>
+                <th>Last Updated</th>
+                <td>{{ data.last_updated_date }}</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="row" id="api-btns"></div>
+    <table class = 'w-50 table table-light' style="border-radius:10px;background-color:#ffffff;">
+        <tr>
+            <th>Enter currency symbol to see price in another currency<input type="text" id="currency_symbol" name="currency_symbol"></th>
+            <td><button id="currency-ex-btn" class="apireq" >Check </button></td>
+            
+        </tr>
+        <tr>
+            <th>Buy Shares <input type="number" id="buy_quantity" name="quantity" min="1" ></th>
+            <td><button id="buy-share-btn" class="apireq" >Buy </button></td>
+        </tr>
+        {% if share_qty > 0 %}
+        <tr>
+            <th>Sell Shares <input type="number" id="sell_quantity" name="quantity" min="1" ></th>
+            <td><button id="sell-share-btn" class="apireq" >Sell </button></td>
+        </tr>
+        {% endif %}
+        <tr>
+            <th>Buy in Foreign Currency <input type="number" id="buy_quantity_forex" name="quantity" min="1" ></th>
+            <td><button id="buy-share-forex" class="apireq" >Buy </button></td>
+        </tr>
+        {% if share_qty > 0 %}
+        <tr>
+            <th>Sell in Foreign Currency <input type="number" id="sell_quantity_forex" name="quantity" min="1" ></th>
+            <td><button id="sell-share-forex" class="apireq" >Sell </button></td>
+        </tr>
+        {% endif %}
+        
+    </table>
+      
+    </body>
+    
+</html>
+
+<script>
+    
+    $('#currency-ex-btn').click( function() {
+        currency_symbol = $('#currency_symbol').val(),
+        company_symbol = document.getElementById('company_symbol').innerText;
+        console.log(currency_symbol)
+        console.log(company_symbol)
+        rate_var = currency_symbol+"_rate"
+        price_var = currency_symbol+"_price"
+        url_endpoint = "?"
+        if(!(company_symbol === "") && (company_symbol !== null && company_symbol !== undefined )){
+            url_endpoint += "company_symbol="+company_symbol
+        }
+        if(!(currency_symbol === "") && (currency_symbol !== null && currency_symbol !== undefined )){
+            url_endpoint += "&to_currency="+currency_symbol
+        }
+    $.ajax({
+                url : "http://127.0.0.1:8000/shares/api/findForeignRate"+url_endpoint,
+                dataType: "json",
+                success : function (data) {
+                console.log(data)
+                
+                htm = ''
+                htm +='<tr><th>Company Name</th><td>'+data['company_name']+'</td></tr>'
+                htm +='<tr><th>Company Symbol</th><td id="company_symbol">'+data['company_symbol']+'</td></tr>'
+                htm +='<tr><th>Available Quantity</th><td>'+data['no_of_shares']+'</td></tr>'
+                htm +='<tr><th>Stock available in Currency</th><td>'+data['share_currency']+'</td></tr>'
+                htm +='<tr><th>Stock Price</th><td>'+data['share_price']+'</td></tr>'
+                htm +='<tr><th>Foreign Currency</th><td id="exc_cur">'+data['exchange_currency']+'</td></tr>'
+                htm +='<tr><th>Rate in '+currency_symbol+'</th><td id="exc_cur_rt">'+data['currency_rate']+'</td></tr>'
+                htm +='<tr><th>Price in '+currency_symbol+'</th><td id="exc_cur_stk_price">'+data['currency_stock_price']+'</td></tr>'
+                htm +='<tr><th>Laste Update Date</th><td>'+data['last_updated_date']+'</td></tr>'
+                $('#stock-resp-data').html(htm);
+                    }
+                    });
+                });
+
+    $('#buy-share-btn').click( function() {
+    company_symbol = document.getElementById('company_symbol').innerText;
+    share_qty = $('#buy_quantity').val(),
+    console.log(company_symbol)
+    console.log(share_qty)
+    url_endpoint = "?"
+    if(!(company_symbol === "") && (company_symbol !== null && company_symbol !== undefined )){
+        url_endpoint += "company_symbol="+company_symbol
+    }
+    if(!(share_qty === "") && (share_qty !== null && share_qty !== undefined )){
+        url_endpoint += "&share_qty="+share_qty
+    }
+    url_endpoint += "&transc_type=buy"
+    $.ajax({
+                url : "http://127.0.0.1:8000/shares/api/shareTransc"+url_endpoint,
+                dataType: "json",
+                success : function (data) {
+                console.log(data)
+                alert(data['response_msg'])
+                    }
+                    });
+                });
+
+    $('#sell-share-btn').click( function() {
+        company_symbol = document.getElementById('company_symbol').innerText;
+        share_qty = $('#sell_quantity').val(),
+        console.log(company_symbol)
+        console.log(share_qty)
+        url_endpoint = "?"
+        if(!(company_symbol === "") && (company_symbol !== null && company_symbol !== undefined )){
+            url_endpoint += "company_symbol="+company_symbol
+        }
+        if(!(share_qty === "") && (share_qty !== null && share_qty !== undefined )){
+            url_endpoint += "&share_qty="+share_qty
+        }
+        url_endpoint += "&transc_type=sell"
+        $.ajax({
+                    url : "http://127.0.0.1:8000/shares/api/shareTransc"+url_endpoint,
+                    dataType: "json",
+                    success : function (data) {
+                    console.log(data)
+                    alert(data['response_msg'])
+                        }
+                        });
+                    });
+
+        $('#buy-share-forex').click( function() {
+            company_symbol = document.getElementById('company_symbol').innerText;
+            forex_rate = document.getElementById('exc_cur_rt').innerText;
+            forex_currency = document.getElementById('exc_cur').innerText;
+            share_qty = $('#buy_quantity_forex').val(),
+            console.log(company_symbol)
+            console.log(share_qty)
+            url_endpoint = "?"
+            if(!(company_symbol === "") && (company_symbol !== null && company_symbol !== undefined )){
+                url_endpoint += "company_symbol="+company_symbol
+            }
+            if(!(share_qty === "") && (share_qty !== null && share_qty !== undefined )){
+                url_endpoint += "&share_qty="+share_qty
+            }
+            if(!(forex_rate === "") && (forex_rate !== null && forex_rate !== undefined )){
+                url_endpoint += "&forex_rate="+forex_rate
+            }
+            if(!(forex_currency === "") && (forex_currency !== null && forex_currency !== undefined )){
+                url_endpoint += "&forex_currency="+forex_currency
+            }
+            if(!(share_qty === "") && (share_qty !== null && share_qty !== undefined )){
+                url_endpoint += "&share_qty="+share_qty
+            }
+            url_endpoint += "&transc_type=buy"
+            $.ajax({
+                        url : "http://127.0.0.1:8000/shares/api/buySellForCur"+url_endpoint,
+                        dataType: "json",
+                        success : function (data) {
+                        console.log(data)
+                        alert(data['response_msg'])
+                            }
+                            });
+                        });
+            
+        $('#sell-share-forex').click( function() {
+            company_symbol = document.getElementById('company_symbol').innerText;
+            forex_rate = document.getElementById('exc_cur_rt').innerText;
+            forex_currency = document.getElementById('exc_cur').innerText;
+            share_qty = $('#sell_quantity_forex').val(),
+            console.log(company_symbol)
+            console.log(share_qty)
+            url_endpoint = "?"
+            if(!(company_symbol === "") && (company_symbol !== null && company_symbol !== undefined )){
+                url_endpoint += "company_symbol="+company_symbol
+            }
+            if(!(share_qty === "") && (share_qty !== null && share_qty !== undefined )){
+                url_endpoint += "&share_qty="+share_qty
+            }
+            if(!(forex_rate === "") && (forex_rate !== null && forex_rate !== undefined )){
+                url_endpoint += "&forex_rate="+forex_rate
+            }
+            if(!(forex_currency === "") && (forex_currency !== null && forex_currency !== undefined )){
+                url_endpoint += "&forex_currency="+forex_currency
+            }
+            url_endpoint += "&transc_type=sell"
+            $.ajax({
+                        url : "http://127.0.0.1:8000/shares/api/buySellForCur"+url_endpoint,
+                        dataType: "json",
+                        success : function (data) {
+                        console.log(data)
+                        alert(data['response_msg'])
+                            }
+                            });
+                        });
+    
+</script>

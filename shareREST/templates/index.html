@@ -1,10 +1,266 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <meta charset="UTF-8">
-    <title>Hom Page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <title>Home</title>
+    <style>
+    table {
+        border-collapse: collapse;
+        font-family: Tahoma, Geneva, sans-serif;
+    }
+    table td {
+        padding: 15px;
+    }
+    table thead td {
+        background-color: #54585d;
+        color: #ffffff;
+        font-weight: bold;
+        font-size: 13px;
+        border: 1px solid #54585d;
+    }
+    table tbody td {
+        color: #636363;
+        border: 1px solid #dddfe1;
+    }
+    table tbody tr {
+        background-color: #f9fafb;
+    }
+    table tbody tr:nth-child(odd) {
+        background-color: #ffffff;
+    }
+        
+	</style>
 </head>
 <body>
-<b3>This is home page</b3>
-</body>
+  
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+          <div class="navbar-nav">
+            <a class="nav-item nav-link active" href="{% url 'home-page' %}">Home <span class="sr-only">(current)</span></a>
+            
+            
+            {% if user.is_authenticated %}
+                  <!-- <li>Hello {{user.first_name}}</a></li> -->
+                  <a class="nav-item nav-link" >Hello {{user.first_name}}</a>
+                  <a class="nav-item nav-link" href="{% url 'logout-user' %}">Logout</a>
+            
+                  
+            
+                  
+            {% endif %}
+            
+          </div>
+        </div>
+      </nav>
+
+      <h3><center>Stock Market API</center></h3>
+
+      
+      <div class="container" style="height:70vh;">
+            <div id="all_stock" class="row">
+                <table class = 'w-50 table table-light' style="border-radius:10px;background-color:#ffffff;">
+                    <tr>
+                        <th>Want to list all stocks listed on our website?</th>
+                        <td><button id="list_all_stock" class="apireq">List Stocks </button></td>
+                    </tr>
+                    <tr>
+                        <th>Filter stock by Quantity
+                            <select id="quantity_filter">
+                            <option value="max">Max Quantity</option>
+                            <option value="min">Min Quantity</option>
+                            </select></th>
+                        <td>
+                            <button id="quantity_filter_btn" class="apireq" >Search </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Filter stock by share price 
+                            <select id="share_price_filter">
+                            <option value="max">Max Price</option>
+                            <option value="min">Min Price</option>
+                            </select></th>
+                        <td>
+                            <button id="price-filter-btn" class="apireq" >Search </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Filter stock by Company Name or Company Symbol
+                            <input type="text" name="company_name" id="company_name" placeholder="Company Name">
+                            <input type="text" name="company_symbol" id="company_symbol" placeholder="Company Symbol">
+                        </th>
+                        <td>
+                            <button id="name_symbol_filter" class="apireq" >Search </button>
+                        </td>
+                    </tr>
+            </div>
+        </div>
+        
+        
+        <div class="row">
+            <!-- <div id="stock-json-data" style="height:75vh;"> -->
+                <div  class="row">
+                    <table id="stock-resp-data" class = 'w-50 table table-light' style="border-radius:10px;background-color:#ffffff;">
+                        
+                </div>
+            <!-- </div> -->
+                
+        </div>
+        
+      <!-- </div> -->
+
+      
+    </body>
+    
 </html>
+
+<script>
+        $('#list_all_stock').click( function() {
+            $.ajax({
+                     url : "http://127.0.0.1:8000/shares/api/listShares",
+                     dataType: "json",
+                     success : function (data) {
+                        console.log(data)
+                        htm = '<tr><th>Company Name</th><th>Company Symbol</th><th>Share Quantity</th><th>Share Currency</th>'+
+                            '<th>Share Price</th><th>Last Updated date</th><th>More</th></tr>';
+                        for(rec in data){
+                            htm += '<tr id='+rec+'>'+
+                                '<td id="company_name">'+data[rec]['company_name']+'</td>'+
+                                '<td id="company_symbol">'+data[rec]['company_symbol']+'</td>'+
+                                '<td id="no_of_shares">'+data[rec]['no_of_shares']+'</td>'+
+                                '<td id="share_currency">'+data[rec]['share_currency']+'</td>'+
+                                '<td id="share_price">'+data[rec]['share_price']+'</td>'+
+                                '<td id="last_updated_date">'+data[rec]['last_updated_date']+'</td>'+
+                                '<td><form action="/shares/api/detail/'  + data[rec]['company_symbol'] + '"method="post">'+
+                                '{% csrf_token %}'+
+                                '<button id="more_btn" class="apireq" ;" >'+'More'+'</button>'+
+                                '</form></td>'+
+                                '</tr>'
+
+                        }
+                        $('#stock-resp-data').html(htm);
+                            }
+                         });
+                     });
+        
+        $('#quantity_filter_btn').click( function() {
+            share_quantity_filter = $('#quantity_filter').val(),
+            console.log(share_quantity_filter)
+        $.ajax({
+                    
+                    url : "http://127.0.0.1:8000/shares/api/listShares"+"?quantity_filter="+share_quantity_filter,
+                    dataType: "json",
+                    success : function (data) {
+                    console.log(data)
+                        htm = '<tr><th>Company Name</th><th>Company Symbol</th><th>Share Quantity</th><th>Share Currency</th>'+
+                            '<th>Share Price</th><th>Last Updated date</th><th>More</th></tr>';
+                        for(rec in data){
+                            htm += '<tr id='+rec+'>'+
+                                '<td id="company_name">'+data[rec]['company_name']+'</td>'+
+                                '<td id="company_symbol">'+data[rec]['company_symbol']+'</td>'+
+                                '<td id="no_of_shares">'+data[rec]['no_of_shares']+'</td>'+
+                                '<td id="share_currency">'+data[rec]['share_currency']+'</td>'+
+                                '<td id="share_price">'+data[rec]['share_price']+'</td>'+
+                                '<td id="last_updated_date">'+data[rec]['last_updated_date']+'</td>'+
+                                '<td><form action="/shares/api/detail/'  + data[rec]['company_symbol'] + '"method="post">'+
+                                    '{% csrf_token %}'+
+                                    '<button id="more_btn" class="apireq" ;" >'+'More'+'</button>'+
+                                    '</form></td>'+
+                                    '</tr>'
+
+                        }
+                        $('#stock-resp-data').html(htm);
+                        }
+                        });
+                    });
+        $('#price-filter-btn').click( function() {
+            share_price_filter = $('#share_price_filter').val(),
+            console.log(share_price_filter)
+        $.ajax({
+                    
+                    url : "http://127.0.0.1:8000/shares/api/listShares"+"?share_price_filter="+share_price_filter,
+                    dataType: "json",
+                    success : function (data) {
+                    console.log(data)
+                    htm = '<tr><th>Company Name</th><th>Company Symbol</th><th>Share Quantity</th><th>Share Currency</th>'+
+                        '<th>Share Price</th><th>Last Updated date</th><th>More</th></tr>';
+                        for(rec in data){
+                            htm += '<tr id='+rec+'>'+
+                                '<td id="company_name">'+data[rec]['company_name']+'</td>'+
+                                '<td id="company_symbol">'+data[rec]['company_symbol']+'</td>'+
+                                '<td id="no_of_shares">'+data[rec]['no_of_shares']+'</td>'+
+                                '<td id="share_currency">'+data[rec]['share_currency']+'</td>'+
+                                '<td id="share_price">'+data[rec]['share_price']+'</td>'+
+                                '<td id="last_updated_date">'+data[rec]['last_updated_date']+'</td>'+
+                                '<td><form action="/shares/api/detail/'  + data[rec]['company_symbol'] + '"method="post">'+
+                                    '{% csrf_token %}'+
+                                    '<button id="more_btn" class="apireq" ;" >'+'More'+'</button>'+
+                                    '</form></td>'+
+                                    '</tr>'
+
+                        }
+                        $('#stock-resp-data').html(htm);
+                        }
+                        });
+                    });
+
+        $('#name_symbol_filter').click( function() {
+            company_name = $('#company_name').val(),
+            company_symbol = $('#company_symbol').val(),
+            url_endpoint = "?"
+            if(!(company_name === "") && (company_name !== null && company_name !== undefined )){
+                url_endpoint += "company_name="+company_name
+            }
+            if(!(company_symbol === "") && (company_symbol !== null && company_symbol !== undefined )){
+                url_endpoint += "&company_symbol="+company_symbol
+            }
+            console.log(company_symbol)
+            console.log(company_name)
+            console.log(url_endpoint)
+
+            $.ajax({
+                        url : "http://127.0.0.1:8000/shares/api/listShares"+url_endpoint,
+                        dataType: "json",
+                        success : function (data) {
+                        console.log(data)
+                        htm = '<tr><th>Company Name</th><th>Company Symbol</th><th>Share Quantity</th><th>Share Currency</th>'+
+                            '<th>Share Price</th><th>Last Updated date</th><th>More</th></tr>';
+                        for(rec in data){
+                            
+                            htm += '<tr id='+rec+'>'+
+                                '<td id="company_name">'+data[rec]['company_name']+'</td>'+
+                                '<td id="company_symbol">'+data[rec]['company_symbol']+'</td>'+
+                                '<td id="no_of_shares">'+data[rec]['no_of_shares']+'</td>'+
+                                '<td id="share_currency">'+data[rec]['share_currency']+'</td>'+
+                                '<td id="share_price">'+data[rec]['share_price']+'</td>'+
+                                '<td id="last_updated_date">'+data[rec]['last_updated_date']+'</td>'+
+                                '<td><form action="/stockApp/detail/'  + data[rec]['company_symbol'] + '"method="post">';
+                                '{% csrf_token %}';
+                                '<button id="more_btn" class="apireq" ;" >'+'More'+'</button>';
+                                '</form></td>';
+                                '</tr>'
+
+                        }
+                        $('#stock-resp-data').html(htm);
+                            }
+                            });
+                        });
+
+        function redirectPage() {
+            var rowId = event.target.parentNode.parentNode.id;
+            console.log(rowId)
+            var company_symbol = document.getElementById(rowId).querySelector("#company_symbol").innerHTML;
+        
+            
+            
+            
+            alert("company_symbol: " + company_symbol);
+        }
+    </script>

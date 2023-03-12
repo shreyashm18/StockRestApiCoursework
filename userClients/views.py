@@ -6,10 +6,14 @@ from django.urls import reverse
 
 
 def index(request):
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect(reverse('login-user'))
     return render(request, 'index.html')
 
 
 def user_login(request):
+    if request.user.is_authenticated:
+        return HttpResponseRedirect(reverse('home-page'))
     context = {}
     if request.method == "POST":
         username = request.POST['username']
@@ -21,6 +25,7 @@ def user_login(request):
                 return HttpResponseRedirect(request.GET['next'])
             return HttpResponseRedirect(reverse('home-page'))
         else:
+            print('wrong user credentials')
             context["error"] = "Provide valid credentials !!"
             return render(request, "login.html", context)
     else:

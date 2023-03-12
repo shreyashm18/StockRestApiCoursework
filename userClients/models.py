@@ -19,4 +19,11 @@ class UserSharesData(models.Model):
     def __str__(self):
         return self.username.name + " " + self.company_symbol
 
-    
+class UserCurrency(models.Model):
+    username = models.ForeignKey(UserClient, on_delete=models.CASCADE)
+    currency_name = models.CharField(null=False, blank=False, max_length=225)
+    currency_symbol = models.CharField(null=False, blank=False, max_length=50)
+    funds = models.FloatField()
+
+    def __str__(self):
+        return self.username.name + " " + self.currency_symbol
